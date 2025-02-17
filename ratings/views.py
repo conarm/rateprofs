@@ -1,17 +1,29 @@
 from django.shortcuts import render
 from django.http import HttpResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.models import User
+from django.contrib.auth import authenticate
+from ratings.models import ModuleInstance, Professor
 
 # Create your views here. Map these views to URLs in urls.py.
+# @csrf_exempt # Disable CSRF protection so POSTs can be sent...
 def index(request):
     return HttpResponse("Hello, world. You're at the ratings index!")
 
 def register(request):
-    # Allow registration with username, email and password
+    # Allow registration with username, email and password from POST request
+    user = User.objects.create_user(request.POST.get('username'), request.POST.get('email'), request.POST.get('password'))
+    user.save()
     return HttpResponse('Not yet implemented')
 
 def login(request):
     # Take a username and password and authorise session
-    return HttpResponse('Not yet implemented')
+    user = authenticate(username=request.POST.get('username'), password=request.POST.get('password'))
+    if user is not None:
+        # A backend authenticated the credentials
+        return HttpResponse('Authorised but not implemented')
+    else:
+        return HttpResponse('Unauthorized but not implemented')
 
 def logout(request):
     # End current session
@@ -22,7 +34,12 @@ def list(request):
     # View a list of all module instances and the professor(s) teaching each of them
     # Format: Code / Name / Year / Semester / Taught by
     # Multiple lines for multiple professors, separate entries by dashes
-    return HttpResponse('Not yet implemented')
+    table = 'Code | Name | Year | Semester | Taught by<br>'
+    instances = ModuleInstance.objects.all()
+    for instance in instances:
+        for professor in instance.professors.all():
+            table += f'{instance.module.code} | {instance.module.name} | {instance.year} | {instance.semester} | {professor.name}<br>'
+    return HttpResponse(table)
 
 def view(request):
     # Option 2 on spec

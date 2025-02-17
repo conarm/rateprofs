@@ -12,6 +12,7 @@ class User(models.Model):
     
 class Module(models.Model):
     name = models.CharField(max_length=250)
+    code = models.CharField(max_length=250)
     
 class Professor(models.Model):
     name = models.CharField(max_length=250)
