@@ -16,6 +16,7 @@ class Module(models.Model):
 class Professor(models.Model):
     name = models.CharField(max_length=250)
     code = models.CharField(max_length=250)
+    ## TODO: modules = xxx?
     
 class ModuleInstance(models.Model):
     module = models.ForeignKey(Module, on_delete=models.CASCADE)
