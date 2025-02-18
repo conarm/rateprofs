@@ -64,6 +64,16 @@ def handle_rate(session, professorCode, moduleCode, year, semester, rating):
             return f"Error: {response.status_code} - {response.text}"
     except requests.exceptions.RequestException as e:
         return f"Request failed: {e}"
+    
+def handle_seed(session):
+    try:
+        response = session.get(BASE_URL + "seed")
+        if response.status_code == 200:
+            return response.text
+        else:
+            return f"Error: {response.status_code} - {response.text}"
+    except requests.exceptions.RequestException as e:
+        return f"Request failed: {e}"
 
 # Main loop to interact with the user
 def main():
@@ -112,6 +122,13 @@ def main():
                     print("Invalid 'rate' command. Format: rate [professorCode] [moduleCode] [year] [semester] [rating]")
                     continue
                 response = handle_rate(session, parts[1], parts[2], parts[3], parts[4], parts[5])
+                print(response)
+            case 'seed':
+                # TODO: Remove before submission? Use this for testing
+                if len(parts) != 1:
+                    print("Invalid 'seed' command. Format: seed")
+                    continue
+                response = handle_seed(session)
                 print(response)
             case _:
                 print("Invalid command")

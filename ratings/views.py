@@ -76,12 +76,7 @@ def list_view(request):
     # View a list of all module instances and the professor(s) teaching each of them
     # Format: Code / Name / Year / Semester / Taught by
     # Multiple lines for multiple professors, separate entries by dashes
-    
-    if (not request.user.is_authenticated):
-        return HttpResponse('User is not authenticated')
-    
-    # TODO: Handle this formatting server-side or client side
-    # We could return a list of entries?
+    # TODO: Handle this formatting server-side or client side - we could return a list of entries? Formatting isn't necessarily our responsibility
     table = 'Code | Name | Year | Semester | Taught by\n'
     instances = ModuleInstance.objects.all()
     for instance in instances:
@@ -94,10 +89,6 @@ def view_view(request):
     # Option 2 on spec
     # View the rating of all professors
     # Format: The rating of Professor Name (Code) is ***** etc.
-    
-    if (not request.user.is_authenticated):
-        return HttpResponse('User is not authenticated')
-    
     output = ''
     average_ratings = Professor.objects.annotate(avg_rating=Avg('moduleinstanceprofessor__rating__rating'))
     for prof in average_ratings:
@@ -110,12 +101,7 @@ def average_view(request):
     # View the average rating of a certain professor in a certain module
     # The rating of Professor Name (Code) in module Module (Code) is ***
     # Params: professorCode, moduleCode
-    # Get the average rating for the specific professor in the given module
-    # TODO: Should we use professor code or professor ID? Same with module - check the spec
-    
-    if (not request.user.is_authenticated):
-        return HttpResponse('User is not authenticated')
-    
+    # Get the average rating for the specific professor in the given module    
     professor_code = request.GET.get('professor_code')
     module_code = request.GET.get('module_code')
     
@@ -149,16 +135,12 @@ def rate_view(request):
     if (not request.user.is_authenticated):
         return HttpResponse('User is not authenticated')
     
-    # TODO: Get ModuleInstanceProfessor from user's params
-    # Query to get the correct ModuleInstanceProfessor
     moduleInstanceProfessor = ModuleInstanceProfessor.objects.filter(
         moduleInstance__module__code=request.POST['moduleCode'],
         moduleInstance__year=request.POST['year'],
         moduleInstance__semester=request.POST['semester'],
         professor__code=request.POST['professorCode']
-    ).first() 
-    # TODO: Get rid of first() once we set up constraints?
-    
+    ).first()    
     rating = Rating(user=request.user, moduleInstanceProfessor=moduleInstanceProfessor, rating=request.POST['rating'])
     
     return HttpResponse('Added rating')
