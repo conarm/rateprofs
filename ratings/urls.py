@@ -3,13 +3,13 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path("", views.index, name="index"),
-    path("seed", views.seed, name="seed"),
-    path("register", views.register, name="register"),
-    path("login", views.login, name="login"),
-    path("logout", views.logout, name="logout"),
-    path("list", views.list, name="list"),
-    path("view", views.view, name="view"),
-    path("average", views.average, name="average"),
-    path("rate", views.rate, name="rate"),
+    path("", views.index_view, name="index"),
+    path("seed", views.seed_view, name="seed"),
+    path("register", views.register_view, name="register"),
+    path("login", views.login_view, name="login"),
+    path("logout", views.logout_view, name="logout"),
+    path("list", views.list_view, name="list"),
+    path("view", views.view_view, name="view"),
+    path("average", views.average_view, name="average"),
+    path("rate", views.rate_view, name="rate"),
 ]
