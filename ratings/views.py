@@ -4,16 +4,18 @@ import string
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
 from ratings.models import ModuleInstance, Professor, Rating, ModuleInstanceProfessor, Module
 from django.db.models import Avg
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 
 # Create your views here. Map these views to URLs in urls.py.
-# @csrf_exempt # Disable CSRF protection so POSTs can be sent...
+@require_http_methods(["GET"])
 def index_view(request):
     return HttpResponse("Hello, world. You're at the ratings index!")
 
+@require_http_methods(["GET"])
 def seed_view(request):
     # Seed the database with a professor, module, two users and two ratings
     user1 = User.objects.create_user(username=''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(8)), email='test@test.com', password='password')
@@ -37,16 +39,21 @@ def seed_view(request):
     
     return HttpResponse('Seeded')
 
+@csrf_exempt
+@require_http_methods(["POST"])
 def register_view(request):
     # Allow registration with username, email and password from POST request
     user = User.objects.create_user(request.POST['username'], request.POST.get['email'], request.POST['password'])
     user.save()
     return HttpResponse('Saved user')
 
+@csrf_exempt
+@require_http_methods(["POST"])
 def login_view(request):
+    if (request.user.is_authenticated):
+        return HttpResponse('User is already authenticated')
     # Take a username and password and authorise session
-    # user = authenticate(username=request.POST.get('username'), password=request.POST.get('password'))
-    user = authenticate(username="username", password="password")
+    user = authenticate(username=request.POST.get('username', ''), password=request.POST.get('password', ''))
     if user is not None:
         # A backend authenticated the credentials
         login(request, user)
@@ -54,6 +61,8 @@ def login_view(request):
     else:
         return HttpResponse('The username or password is incorrect')
 
+@csrf_exempt
+@require_http_methods(["POST"])
 def logout_view(request):
     if (not request.user.is_authenticated):
         return HttpResponse('User is not authenticated')
@@ -61,6 +70,7 @@ def logout_view(request):
     logout(request)
     return HttpResponse('Logged out')
 
+@require_http_methods(["GET"])
 def list_view(request):
     # Option 1 on spec
     # View a list of all module instances and the professor(s) teaching each of them
@@ -70,13 +80,16 @@ def list_view(request):
     if (not request.user.is_authenticated):
         return HttpResponse('User is not authenticated')
     
-    table = 'Code | Name | Year | Semester | Taught by<br>'
+    # TODO: Handle this formatting server-side or client side
+    # We could return a list of entries?
+    table = 'Code | Name | Year | Semester | Taught by\n'
     instances = ModuleInstance.objects.all()
     for instance in instances:
         for professor in instance.professors.all():
-            table += f'{instance.module.code} | {instance.module.name} | {instance.year} | {instance.semester} | {professor.name}<br>'
+            table += f'{instance.module.code} | {instance.module.name} | {instance.year} | {instance.semester} | {professor.name}\n'
     return HttpResponse(table)
 
+@require_http_methods(["GET"])
 def view_view(request):
     # Option 2 on spec
     # View the rating of all professors
@@ -88,9 +101,10 @@ def view_view(request):
     output = ''
     average_ratings = Professor.objects.annotate(avg_rating=Avg('moduleinstanceprofessor__rating__rating'))
     for prof in average_ratings:
-        output += f'The rating of Professor {prof.name} ({prof.code}) is {'*' * round(prof.avg_rating)}'
+        output += f'The rating of Professor {prof.name} ({prof.code}) is {'*' * round(prof.avg_rating)}\n'
     return HttpResponse(output)
 
+@require_http_methods(["GET"])
 def average_view(request):
     # Option 3 on spec
     # View the average rating of a certain professor in a certain module
@@ -125,6 +139,8 @@ def average_view(request):
     output = f"The rating of Professor {professor.name} ({professor.code}) in module {module.name} ({module.code}) is {'*' * round(avg_rating)}"
     return HttpResponse(output)
 
+@csrf_exempt
+@require_http_methods(["POST"])
 def rate_view(request):
     # Option 4 on spec
     # Rate the teaching of a certain professor in a certain module instance
