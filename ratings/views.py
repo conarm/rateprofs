@@ -1,14 +1,40 @@
+import random
+import string
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
-from ratings.models import ModuleInstance, Professor
+from ratings.models import ModuleInstance, Professor, Rating, ModuleInstanceProfessor, Module
+from django.db.models import Avg
 
 # Create your views here. Map these views to URLs in urls.py.
 # @csrf_exempt # Disable CSRF protection so POSTs can be sent...
 def index(request):
     return HttpResponse("Hello, world. You're at the ratings index!")
+
+def seed(request):
+    # Seed the database with a professor, module, two users and two ratings
+    user1 = User.objects.create_user(username=''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(8)), email='test@test.com', password='password')
+    user1.save()
+    user2 = User.objects.create_user(username=''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(8)), email='test@test.com', password='password')
+    user2.save()
+    
+    professor = Professor(name='Roy Ruddle', code='RR')
+    professor.save()
+    module = Module(name='Info Vis', code='IV')
+    module.save()
+    moduleInstance = ModuleInstance(module=module, year=2024, semester=1)
+    moduleInstance.save()
+    moduleInstanceProfessor = ModuleInstanceProfessor(moduleInstance=moduleInstance, professor=professor)
+    moduleInstanceProfessor.save()
+    
+    rating1 = Rating(user=user1, moduleInstanceProfessor=moduleInstanceProfessor, rating=1)
+    rating1.save()
+    rating2 = Rating(user=user2, moduleInstanceProfessor=moduleInstanceProfessor, rating=5)
+    rating2.save()
+    
+    return HttpResponse('Seeded')
 
 def register(request):
     # Allow registration with username, email and password from POST request
