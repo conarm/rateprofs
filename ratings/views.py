@@ -23,19 +23,56 @@ def seed_view(request):
     user2 = User.objects.create_user(username=''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(8)), email='test@test.com', password='password')
     user2.save()
     
-    professor = Professor(name='Roy Ruddle', code='RR')
-    professor.save()
-    module = Module(name='Info Vis', code='IV')
-    module.save()
-    moduleInstance = ModuleInstance(module=module, year=2024, semester=1)
-    moduleInstance.save()
-    moduleInstanceProfessor = ModuleInstanceProfessor(moduleInstance=moduleInstance, professor=professor)
-    moduleInstanceProfessor.save()
+    # Create 4 professors
+    professor1 = Professor(name='Roy Ruddle', code='RR')
+    professor1.save()
+    professor2 = Professor(name='John Stell', code='JS')
+    professor2.save()
+    professor3 = Professor(name='Amie Beloe', code='AB')
+    professor3.save()
+    professor4 = Professor(name='Owen Johnson', code='OJ')
+    professor4.save()
     
-    rating1 = Rating(user=user1, moduleInstanceProfessor=moduleInstanceProfessor, rating=1)
+    # Create IV module
+    module1 = Module(name='Info Vis', code='IV')
+    module1.save()
+    
+    # Create IV module
+    module2 = Module(name='Data Vis', code='DV')
+    module2.save()
+    
+    # Instantiate IV module twice (2023,1 and 2024, 1)
+    moduleInstance1 = ModuleInstance(module=module1, year=2024, semester=1)
+    moduleInstance1.save()
+    moduleInstance2 = ModuleInstance(module=module1, year=2023, semester=1)
+    moduleInstance2.save()
+    
+    # Instantiate DV module once (2024, 2)
+    moduleInstance3 = ModuleInstance(module=module2, year=2024, semester=2)
+    moduleInstance3.save()
+    
+    # Get Roy to teach IV both times
+    moduleInstanceProfessor1 = ModuleInstanceProfessor(moduleInstance=moduleInstance1, professor=professor1)
+    moduleInstanceProfessor1.save()
+    moduleInstanceProfessor2 = ModuleInstanceProfessor(moduleInstance=moduleInstance1, professor=professor1)
+    moduleInstanceProfessor2.save()
+    
+    # Get Roy to teach DV too
+    moduleInstanceProfessor3 = ModuleInstanceProfessor(moduleInstance=moduleInstance3, professor=professor1)
+    moduleInstanceProfessor3.save()
+    
+    # Rate Roy with a 1 and a 3, across the 2023 and 2024 IV module respectively
+    # IV module average should be 2
+    rating1 = Rating(user=user1, moduleInstanceProfessor=moduleInstanceProfessor1, rating=1)
     rating1.save()
-    rating2 = Rating(user=user2, moduleInstanceProfessor=moduleInstanceProfessor, rating=5)
+    rating2 = Rating(user=user2, moduleInstanceProfessor=moduleInstanceProfessor2, rating=3)
     rating2.save()
+    
+    # Rate Roy with a 5 on the DV instance
+    # Roy professor average should be 3
+    # DV module average should be 5
+    rating3 = Rating(user=user2, moduleInstanceProfessor=moduleInstanceProfessor3, rating=5)
+    rating3.save()
     
     return HttpResponse('Seeded')
 
