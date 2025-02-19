@@ -19,58 +19,58 @@ def seed_view(request):
     user2.save()
     
     # Create 4 professors
-    professor1 = Professor(name='Roy Ruddle', code='RR')
-    professor1.save()
-    professor2 = Professor(name='John Stell', code='JS')
-    professor2.save()
-    professor3 = Professor(name='Amie Beloe', code='AB')
-    professor3.save()
-    professor4 = Professor(name='Owen Johnson', code='OJ')
-    professor4.save()
+    professorRR = Professor(name='Roy Ruddle', code='RR')
+    professorRR.save()
+    professorJS = Professor(name='John Stell', code='JS')
+    professorJS.save()
+    professorAB = Professor(name='Amie Beloe', code='AB')
+    professorAB.save()
+    professorOJ = Professor(name='Owen Johnson', code='OJ')
+    professorOJ.save()
     
     # Create IV module
-    module1 = Module(name='Info Vis', code='IV')
-    module1.save()
+    moduleIV = Module(name='Info Vis', code='IV')
+    moduleIV.save()
     
-    # Create IV module
-    module2 = Module(name='Data Vis', code='DV')
-    module2.save()
+    # Create DV module
+    moduleDV = Module(name='Data Vis', code='DV')
+    moduleDV.save()
     
     # Instantiate IV module twice (2023,1 and 2024, 1)
-    moduleInstance1 = ModuleInstance(module=module1, year=2024, semester=1)
-    moduleInstance1.save()
-    moduleInstance2 = ModuleInstance(module=module1, year=2023, semester=1)
-    moduleInstance2.save()
+    moduleInstanceIV1 = ModuleInstance(module=moduleIV, year=2024, semester=1)
+    moduleInstanceIV1.save()
+    moduleInstanceIV2 = ModuleInstance(module=moduleIV, year=2023, semester=1)
+    moduleInstanceIV2.save()
     
     # Instantiate DV module once (2024, 2)
-    moduleInstance3 = ModuleInstance(module=module2, year=2024, semester=2)
-    moduleInstance3.save()
+    moduleInstanceDV = ModuleInstance(module=moduleDV, year=2024, semester=2)
+    moduleInstanceDV.save()
     
     # Get Roy to teach IV both times
-    moduleInstanceProfessor1 = ModuleInstanceProfessor(moduleInstance=moduleInstance1, professor=professor1)
-    moduleInstanceProfessor1.save()
-    moduleInstanceProfessor2 = ModuleInstanceProfessor(moduleInstance=moduleInstance2, professor=professor1)
-    moduleInstanceProfessor2.save()
+    moduleInstanceProfessorRRIV1 = ModuleInstanceProfessor(moduleInstance=moduleInstanceIV1, professor=professorRR)
+    moduleInstanceProfessorRRIV1.save()
+    moduleInstanceProfessorRRIV2 = ModuleInstanceProfessor(moduleInstance=moduleInstanceIV2, professor=professorRR)
+    moduleInstanceProfessorRRIV2.save()
     
-    # Get Owen to teach IV for the first time
-    moduleInstanceProfessor1 = ModuleInstanceProfessor(moduleInstance=moduleInstance1, professor=professor2)
-    moduleInstanceProfessor1.save()
+    # Get Owen to teach IV1
+    moduleInstanceProfessorOJ = ModuleInstanceProfessor(moduleInstance=moduleInstanceIV1, professor=professorOJ)
+    moduleInstanceProfessorOJ.save()
     
     # Get Roy to teach DV too
-    moduleInstanceProfessor3 = ModuleInstanceProfessor(moduleInstance=moduleInstance3, professor=professor1)
-    moduleInstanceProfessor3.save()
+    moduleInstanceProfessorRRDV = ModuleInstanceProfessor(moduleInstance=moduleInstanceDV, professor=professorRR)
+    moduleInstanceProfessorRRDV.save()
     
     # Rate Roy with a 1 and a 3, across the 2023 and 2024 IV module respectively
     # IV module average should be 2
-    rating1 = Rating(user=user1, moduleInstanceProfessor=moduleInstanceProfessor1, rating=1)
+    rating1 = Rating(user=user1, moduleInstanceProfessor=moduleInstanceProfessorRRIV1, rating=1)
     rating1.save()
-    rating2 = Rating(user=user2, moduleInstanceProfessor=moduleInstanceProfessor2, rating=3)
+    rating2 = Rating(user=user2, moduleInstanceProfessor=moduleInstanceProfessorRRIV2, rating=3)
     rating2.save()
     
     # Rate Roy with a 5 on the DV instance
     # Roy professor average should be 3
     # DV module average should be 5
-    rating3 = Rating(user=user2, moduleInstanceProfessor=moduleInstanceProfessor3, rating=5)
+    rating3 = Rating(user=user2, moduleInstanceProfessor=moduleInstanceProfessorRRDV, rating=5)
     rating3.save()
     
     return HttpResponse('Seeded')
@@ -113,11 +113,17 @@ def list_view(request):
     # Format: Code / Name / Year / Semester / Taught by
     # Multiple lines for multiple professors, separate entries by dashes
     # TODO: Handle this formatting server-side or client side - we could return a list of entries? Formatting isn't necessarily our responsibility
-    table = 'Code | Name | Year | Semester | Taught by\n'
+    table = 'Code | Name | Year | Semester | Taught by\n---------------------------------------------------------------\n'
     instances = ModuleInstance.objects.all()
     for instance in instances:
+        count = 0
         for professor in instance.professors.all():
-            table += f'{instance.module.code} | {instance.module.name} | {instance.year} | {instance.semester} | {professor.name}\n'
+            if count == 0:
+                table += f'{instance.module.code}  {instance.module.name}   {instance.year}   {instance.semester}   {professor.name}\n'
+            else:
+                table += f'                          {professor.name}\n'
+            count += 1
+        table += '---------------------------------------------------------------\n'
     return HttpResponse(table)
 
 @require_http_methods(["GET"])
@@ -174,13 +180,17 @@ def rate_view(request):
     
     if (not request.user.is_authenticated):
         return HttpResponse('User is not authenticated')
-    
+        
     moduleInstanceProfessor = ModuleInstanceProfessor.objects.filter(
         moduleInstance__module__code=request.POST['moduleCode'],
         moduleInstance__year=request.POST['year'],
         moduleInstance__semester=request.POST['semester'],
         professor__code=request.POST['professorCode']
-    ).first()    
-    rating = Rating(user=request.user, moduleInstanceProfessor=moduleInstanceProfessor, rating=request.POST['rating'])
+    ).first()
     
+    if (moduleInstanceProfessor is None):
+        return HttpResponse('Module instance not found')
+    rating = Rating(user=request.user, moduleInstanceProfessor=moduleInstanceProfessor, rating=request.POST['rating'])
+    rating.save()
     return HttpResponse('Added rating')
+    

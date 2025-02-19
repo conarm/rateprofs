@@ -57,7 +57,7 @@ def handle_average(session, professorCode, moduleCode):
     
 def handle_rate(session, professorCode, moduleCode, year, semester, rating):
     try:
-        response = session.post(BASE_URL + "login", data={"professorCode": professorCode, "moduleCode": moduleCode, "year": year, "semester": semester, "rating": rating})
+        response = session.post(BASE_URL + "rate", data={"professorCode": professorCode, "moduleCode": moduleCode, "year": year, "semester": semester, "rating": rating})
         if response.status_code == 200:
             return response.text
         else:
