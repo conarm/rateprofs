@@ -9,7 +9,6 @@ class Module(models.Model):
 class Professor(models.Model):
     name = models.CharField(max_length=250)
     code = models.CharField(max_length=250, unique=True)
-    moduleInstances = models.ManyToManyField(ModuleInstance, through='ModuleInstanceProfessor')
     
 class ModuleInstance(models.Model):
     module = models.ForeignKey(Module, on_delete=models.CASCADE)
@@ -18,7 +17,7 @@ class ModuleInstance(models.Model):
         MaxValueValidator(2),
         MinValueValidator(1)
     ])
-    professors = models.ManyToManyField(Professor, through='ModuleInstanceProfessor')
+    professors = models.ManyToManyField(Professor, related_name="moduleInstances", through='ModuleInstanceProfessor')
     
 class ModuleInstanceProfessor(models.Model):
     moduleInstance = models.ForeignKey(ModuleInstance, on_delete=models.CASCADE)

@@ -10,11 +10,6 @@ from django.db.models import Avg
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 
-# Create your views here. Map these views to URLs in urls.py.
-@require_http_methods(["GET"])
-def index_view(request):
-    return HttpResponse("Hello, world. You're at the ratings index!")
-
 @require_http_methods(["GET"])
 def seed_view(request):
     # Seed the database with a professor, module, two users and two ratings
@@ -54,8 +49,12 @@ def seed_view(request):
     # Get Roy to teach IV both times
     moduleInstanceProfessor1 = ModuleInstanceProfessor(moduleInstance=moduleInstance1, professor=professor1)
     moduleInstanceProfessor1.save()
-    moduleInstanceProfessor2 = ModuleInstanceProfessor(moduleInstance=moduleInstance1, professor=professor1)
+    moduleInstanceProfessor2 = ModuleInstanceProfessor(moduleInstance=moduleInstance2, professor=professor1)
     moduleInstanceProfessor2.save()
+    
+    # Get Owen to teach IV for the first time
+    moduleInstanceProfessor1 = ModuleInstanceProfessor(moduleInstance=moduleInstance1, professor=professor2)
+    moduleInstanceProfessor1.save()
     
     # Get Roy to teach DV too
     moduleInstanceProfessor3 = ModuleInstanceProfessor(moduleInstance=moduleInstance3, professor=professor1)
@@ -128,8 +127,12 @@ def view_view(request):
     # Format: The rating of Professor Name (Code) is ***** etc.
     output = ''
     average_ratings = Professor.objects.annotate(avg_rating=Avg('moduleinstanceprofessor__rating__rating'))
+    
     for prof in average_ratings:
-        output += f'The rating of Professor {prof.name} ({prof.code}) is {'*' * round(prof.avg_rating)}\n'
+        if (prof.avg_rating is not None):
+            output += f'The rating of Professor {prof.name} ({prof.code}) is {'*' * round(prof.avg_rating)}\n'
+        else:
+            output += f'Nobody rates Professor {prof.name} ({prof.code})\n'
     return HttpResponse(output)
 
 @require_http_methods(["GET"])
