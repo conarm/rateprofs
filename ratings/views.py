@@ -9,6 +9,8 @@ from ratings.models import ModuleInstance, Professor, Rating, ModuleInstanceProf
 from django.db.models import Avg
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
+from django.core import serializers
+from django.http.response import JsonResponse
 
 @require_http_methods(["GET"])
 def seed_view(request):
@@ -75,6 +77,8 @@ def seed_view(request):
     
     return HttpResponse('Seeded')
 
+# Return 200 OK on success
+# Return 422 Unprocessable Entity
 @csrf_exempt
 @require_http_methods(["POST"])
 def register_view(request):
@@ -83,11 +87,13 @@ def register_view(request):
     user.save()
     return HttpResponse('Saved user')
 
+# Return 200 OK on success
+# Return 404 Not Found with a text/plain reason on failure
 @csrf_exempt
 @require_http_methods(["POST"])
 def login_view(request):
-    if (request.user.is_authenticated):
-        return HttpResponse('User is already authenticated')
+    # if (request.user.is_authenticated):
+    #     return HttpResponse('User is already authenticated')
     # Take a username and password and authorise session
     user = authenticate(username=request.POST.get('username', ''), password=request.POST.get('password', ''))
     if user is not None:
@@ -97,6 +103,8 @@ def login_view(request):
     else:
         return HttpResponse('The username or password is incorrect')
 
+# Return 200 OK on success
+# Return 403 Unauthorised with a text/plain reason on authentication failure
 @csrf_exempt
 @require_http_methods(["POST"])
 def logout_view(request):
@@ -106,6 +114,8 @@ def logout_view(request):
     logout(request)
     return HttpResponse('Logged out')
 
+# Return 200 OK with [{modcode, modname, year, semester, [{taughtbyname}]}] on success
+# Return 404 Not Found with a text/plain reason on failure
 @require_http_methods(["GET"])
 def list_view(request):
     # Option 1 on spec
@@ -126,6 +136,8 @@ def list_view(request):
         table += '---------------------------------------------------------------\n'
     return HttpResponse(table)
 
+# Return 200 OK with {[profname, profcode, avgrating]} on success
+# Return 400 Not Found with text/plain if no professors found
 @require_http_methods(["GET"])
 def view_view(request):
     # Option 2 on spec
@@ -141,6 +153,8 @@ def view_view(request):
             output += f'Nobody rates Professor {prof.name} ({prof.code})\n'
     return HttpResponse(output)
 
+# Return 200 OK with {profname, profcode, modulename, modulecode, rating} on success
+# Return 404 Not Found with a text/plain reason on failure
 @require_http_methods(["GET"])
 def average_view(request):
     # Option 3 on spec
@@ -171,6 +185,9 @@ def average_view(request):
     output = f"The rating of Professor {professor.name} ({professor.code}) in module {module.name} ({module.code}) is {'*' * round(avg_rating)}"
     return HttpResponse(output)
 
+# Return 201 Created on success
+# Return 404 Not Found with a text/plain reason on failure
+# Return 403 Unauthorised with a text/plain reason on authentication failure
 @csrf_exempt
 @require_http_methods(["POST"])
 def rate_view(request):
@@ -188,6 +205,7 @@ def rate_view(request):
         professor__code=request.POST['professorCode']
     ).first()
     
+    # TODO: Only allow rating once per module
     if (moduleInstanceProfessor is None):
         return HttpResponse('Module instance not found')
     rating = Rating(user=request.user, moduleInstanceProfessor=moduleInstanceProfessor, rating=request.POST['rating'])
