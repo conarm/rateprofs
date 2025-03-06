@@ -1,8 +1,5 @@
-import json
 import random
 import string
-from django.forms import ValidationError
-from django.shortcuts import render
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
@@ -10,7 +7,6 @@ from ratings.models import ModuleInstance, Professor, Rating, ModuleInstanceProf
 from django.db.models import Avg, Q
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
-from django.core import serializers
 from django.http.response import JsonResponse
 
 @require_http_methods(["GET"])
@@ -79,6 +75,7 @@ def seed_view(request):
         
         return HttpResponse('Seeded')
     except Exception:
+        # Fallback error response
         return HttpResponse("Something went wrong", status=422, content_type="text/plain")
 
 # Return 200 OK on success
@@ -104,8 +101,9 @@ def register_view(request):
         user = User.objects.create_user(username, email, password)
         user.save()
         return HttpResponse("Success", status=200, content_type="text/plain")
-    except Exception as e:
-        return HttpResponse("Something went wrong - " + e.message, status=422, content_type="text/plain")
+    except Exception:
+        # Fallback error response
+        return HttpResponse("Something went wrong", status=422, content_type="text/plain")
 
 # Return 200 OK on success
 # Return 404 Not Found with a text/plain reason if incorrect user/pass
@@ -132,6 +130,7 @@ def login_view(request):
         return HttpResponse('Success', status=200, content_type="text/plain")
             
     except Exception:
+        # Fallback error response
         return HttpResponse("Something went wrong", status=422, content_type="text/plain")
 
 # Return 200 OK on success
@@ -146,7 +145,8 @@ def logout_view(request):
         # End current session
         logout(request)
         return HttpResponse('Success', status=200, content_type="text/plain")
-    except Exception as e:
+    except Exception:
+        # Fallback error response
         return HttpResponse("Something went wrong", status=422, content_type="text/plain")
 
 # Return 200 OK with [{modcode, modname, year, semester, [{taughtbyname}]}] on success
@@ -172,6 +172,7 @@ def list_view(request):
             })
         return JsonResponse(data, safe=False, status=200)
     except Exception:
+        # Fallback error response
         return HttpResponse("Something went wrong", status=422, content_type="text/plain")
 
 # Return 200 OK with {[profname, profcode, avgrating]} on success
@@ -195,6 +196,7 @@ def view_view(request):
             })
         return JsonResponse(data, safe=False, status=200)
     except Exception:
+        # Fallback error response
         return HttpResponse("Something went wrong", status=422, content_type="text/plain")
 
 # Return 200 OK with {profname, profcode, modulename, modulecode, rating} on success
@@ -212,6 +214,7 @@ def average_view(request):
         if not professor_code or not module_code:
                 return HttpResponse("Missing required fields", status=422, content_type="text/plain")
         
+        # Make an aggregate query - group and average out matching professor/module pairs
         avg_rating = Rating.objects.filter(
             moduleInstanceProfessor__professor__code=professor_code,
             moduleInstanceProfessor__moduleInstance__module__code=module_code
@@ -234,11 +237,13 @@ def average_view(request):
         }
         return JsonResponse(data, status=200)
     except Exception:
+        # Fallback error response
         return HttpResponse("Something went wrong", status=422, content_type="text/plain")
 
 # Return 201 Created on success
 # Return 404 Not Found with a text/plain reason on failure
 # Return 403 Unauthorised with a text/plain reason on authentication failure
+# Return 400 Bad Request if rating isn't numerical
 # Return 422 Unprocessable Entity with a text/plain reason on fields missing
 # Return 422 Unprocessable Entity with a text/plain reason otherwise
 @csrf_exempt
@@ -265,8 +270,8 @@ def rate_view(request):
             # Only validate rating for rounding - others will just cause a moduleInstance not to be found
             # TODO: test for the above
             rating = round(float(rating))
-        except:
-            return HttpResponse('Validation error', status=400, content_type="text/plain")
+        except TypeError:
+            return HttpResponse('Provided rating is not a number', status=400, content_type="text/plain")
         
         # Search for module instance using parameters
         moduleInstanceProfessor = ModuleInstanceProfessor.objects.filter(
@@ -295,5 +300,6 @@ def rate_view(request):
         rating.save()
         return HttpResponse('Added rating', status=200, content_type="text/plain")
     except Exception:
+        # Fallback error response
         return HttpResponse("Something went wrong", status=422, content_type="text/plain")
     
