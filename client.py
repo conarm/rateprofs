@@ -2,7 +2,7 @@ import requests
 
 # Base URL of the API
 # TODO: Replace with PythonAnywhere URL when hosted
-BASE_URL = "http://127.0.0.1:8000/api/"
+BASE_URL = "https://sc21ca.pythonanywhere.com/api/"
 
 # Send a register request to create a user account
 def handle_register(session, username, email, password):
@@ -13,7 +13,7 @@ def handle_register(session, username, email, password):
         else:
             return f"Error: {response.status_code} - {response.text}"
     except Exception as e:
-        return f"Request failed: {e.message}"
+        return f"Request failed: {e}"
 
 # Send a login request to log in the session
 def handle_login(session, url, username, password):
@@ -25,7 +25,7 @@ def handle_login(session, url, username, password):
         else:
             return f"Error: {response.status_code} - {response.text}"
     except Exception as e:
-        return f"Request failed: {e.message}"
+        return f"Request failed: {e}"
 
 # Send a logout request to end the logged-in session
 def handle_logout(session):
@@ -36,7 +36,7 @@ def handle_logout(session):
         else:
             return f"Error: {response.status_code} - {response.text}"
     except Exception as e:
-        return f"Request failed: {e.message}"
+        return f"Request failed: {e}"
     
 # Send a list request to view a list of all module instances
 def handle_list(session):
@@ -57,7 +57,7 @@ def handle_list(session):
         else:
             return f"Error: {response.status_code} - {response.text}"
     except Exception as e:
-        return f"Request failed: {e.message}"
+        return f"Request failed: {e}"
     
 # Send a view request to view the ratings of all professors
 def handle_view(session):
@@ -76,7 +76,7 @@ def handle_view(session):
         else:
             return f"Error: {response.status_code} - {response.text}"
     except Exception as e:
-        return f"Request failed: {e.message}"
+        return f"Request failed: {e}"
     
 # Send an average request to see the average rating of a professor in a module
 def handle_average(session, professorCode, moduleCode):
@@ -92,7 +92,7 @@ def handle_average(session, professorCode, moduleCode):
         else:
             return f"Error: {response.status_code} - {response.text}"
     except Exception as e:
-        return f"Request failed: {e.message}"
+        return f"Request failed: {e}"
 
 # Send a rate request to rate a module instance
 def handle_rate(session, professorCode, moduleCode, year, semester, rating):
@@ -103,7 +103,7 @@ def handle_rate(session, professorCode, moduleCode, year, semester, rating):
         else:
             return f"Error: {response.status_code} - {response.text}"
     except Exception as e:
-        return f"Request failed: {e.message}"
+        return f"Request failed: {e}"
 
 # Send a seed request to populate database
 def handle_seed(session):
