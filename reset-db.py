@@ -29,7 +29,7 @@ def seed():
     professorRR.save()
     professorJS = Professor(name='John Stell', code='JS')
     professorJS.save()
-    professorAB = Professor(name='Amie Beloe', code='AB')
+    professorAB = Professor(name='Amy Beloe', code='AB')
     professorAB.save()
     professorOJ = Professor(name='Owen Johnson', code='OJ')
     professorOJ.save()
