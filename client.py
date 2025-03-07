@@ -129,7 +129,7 @@ def main():
                 print(response)
             case 'login':
                 if len(parts) != 2:
-                    print("Invalid 'login' command. Format: login [url] (omit the preceding 'http://', 'https://' and subsequent '/')")
+                    print("Invalid 'login' command. Format: login sc21ca.pythonanywhere.com (omit the preceding 'http://', 'https://' and subsequent '/')")
                     continue
                 url = parts[1]
                 username = input("Please enter your username: ")
