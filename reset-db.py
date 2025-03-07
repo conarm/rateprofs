@@ -9,11 +9,11 @@ import string
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'rateprofs.settings')
 django.setup()
 
-from ratings.models import ModuleInstance, Professor, Rating, ModuleInstanceProfessor, Module
+from api.models import ModuleInstance, Professor, Rating, ModuleInstanceProfessor, Module
 from django.contrib.auth.models import User
 
 # Define the app name
-APP_NAME = "ratings"
+APP_NAME = "api"
 
 def seed():
     print("Seeding . . .")
