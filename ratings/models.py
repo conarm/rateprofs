@@ -27,7 +27,7 @@ class Rating(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     moduleInstanceProfessor = models.ForeignKey(ModuleInstanceProfessor, on_delete=models.CASCADE)
     rating = models.IntegerField(validators=[
-        MaxValueValidator(100),
+        MaxValueValidator(5),
         MinValueValidator(1)
     ])
     

@@ -9,75 +9,6 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.http.response import JsonResponse
 
-@require_http_methods(["GET"])
-def seed_view(request):
-    try:
-        # Seed the database with a professor, module, two users and two ratings
-        user1 = User.objects.create_user(username=''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(8)), email='test@test.com', password='password')
-        user1.save()
-        user2 = User.objects.create_user(username=''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(8)), email='test@test.com', password='password')
-        user2.save()
-        
-        # Create 4 professors
-        professorRR = Professor(name='Roy Ruddle', code='RR')
-        professorRR.save()
-        professorJS = Professor(name='John Stell', code='JS')
-        professorJS.save()
-        professorAB = Professor(name='Amie Beloe', code='AB')
-        professorAB.save()
-        professorOJ = Professor(name='Owen Johnson', code='OJ')
-        professorOJ.save()
-        
-        # Create IV module
-        moduleIV = Module(name='Info Vis', code='IV')
-        moduleIV.save()
-        
-        # Create DV module
-        moduleDV = Module(name='Data Vis', code='DV')
-        moduleDV.save()
-        
-        # Instantiate IV module twice (2023,1 and 2024, 1)
-        moduleInstanceIV1 = ModuleInstance(module=moduleIV, year=2024, semester=1)
-        moduleInstanceIV1.save()
-        moduleInstanceIV2 = ModuleInstance(module=moduleIV, year=2023, semester=1)
-        moduleInstanceIV2.save()
-        
-        # Instantiate DV module once (2024, 2)
-        moduleInstanceDV = ModuleInstance(module=moduleDV, year=2024, semester=2)
-        moduleInstanceDV.save()
-        
-        # Get Roy to teach IV both times
-        moduleInstanceProfessorRRIV1 = ModuleInstanceProfessor(moduleInstance=moduleInstanceIV1, professor=professorRR)
-        moduleInstanceProfessorRRIV1.save()
-        moduleInstanceProfessorRRIV2 = ModuleInstanceProfessor(moduleInstance=moduleInstanceIV2, professor=professorRR)
-        moduleInstanceProfessorRRIV2.save()
-        
-        # Get Owen to teach IV1
-        moduleInstanceProfessorOJ = ModuleInstanceProfessor(moduleInstance=moduleInstanceIV1, professor=professorOJ)
-        moduleInstanceProfessorOJ.save()
-        
-        # Get Roy to teach DV too
-        moduleInstanceProfessorRRDV = ModuleInstanceProfessor(moduleInstance=moduleInstanceDV, professor=professorRR)
-        moduleInstanceProfessorRRDV.save()
-        
-        # Rate Roy with a 1 and a 3, across the 2023 and 2024 IV module respectively
-        # IV module average should be 2
-        rating1 = Rating(user=user1, moduleInstanceProfessor=moduleInstanceProfessorRRIV1, rating=1)
-        rating1.save()
-        rating2 = Rating(user=user2, moduleInstanceProfessor=moduleInstanceProfessorRRIV2, rating=3)
-        rating2.save()
-        
-        # Rate Roy with a 5 on the DV instance
-        # Roy professor average should be 3
-        # DV module average should be 5
-        rating3 = Rating(user=user2, moduleInstanceProfessor=moduleInstanceProfessorRRDV, rating=5)
-        rating3.save()
-        
-        return HttpResponse('Seeded')
-    except Exception:
-        # Fallback error response
-        return HttpResponse("Something went wrong", status=422, content_type="text/plain")
-
 # Return 200 OK on success
 # Return 422 Unprocessable Entity with a text/plain reason on fields missing
 # Return 422 Unprocessable Entity with a text/plain reason otherwise
@@ -268,7 +199,6 @@ def rate_view(request):
         # Validate and clean parameters
         try:
             # Only validate rating for rounding - others will just cause a moduleInstance not to be found
-            # TODO: test for the above
             rating = round(float(rating))
         except TypeError:
             return HttpResponse('Provided rating is not a number', status=400, content_type="text/plain")
@@ -302,4 +232,3 @@ def rate_view(request):
     except Exception:
         # Fallback error response
         return HttpResponse("Something went wrong", status=422, content_type="text/plain")
-    

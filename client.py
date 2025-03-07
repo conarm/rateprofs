@@ -1,7 +1,6 @@
 import requests
 
 # Base URL of the API
-# TODO: Replace with PythonAnywhere URL when hosted
 BASE_URL = "https://sc21ca.pythonanywhere.com/api/"
 
 # Send a register request to create a user account
@@ -18,7 +17,6 @@ def handle_register(session, username, email, password):
 # Send a login request to log in the session
 def handle_login(session, url, username, password):
     try:
-        # TODO: Keep http here?
         response = session.post('http://' + url + "/api/login", data={"username": username, "password": password})
         if response.status_code == 200:
             return response.text
@@ -105,17 +103,6 @@ def handle_rate(session, professorCode, moduleCode, year, semester, rating):
     except Exception as e:
         return f"Request failed: {e}"
 
-# Send a seed request to populate database
-def handle_seed(session):
-    try:
-        response = session.get(BASE_URL + "seed")
-        if response.status_code == 200:
-            return response.text
-        else:
-            return f"Error: {response.status_code} - {response.text}"
-    except Exception as e:
-        return f"Request failed: {e.message}"
-
 # Main command loop
 def main():
     print("Welcome to the API Client. Type 'exit' to quit.")
@@ -185,13 +172,6 @@ def main():
                 semester = parts[4]
                 rating = parts[5]
                 response = handle_rate(session, professorCode, moduleCode, year, semester, rating)
-                print(response)
-            case 'seed':
-                # TODO: Remove before submission? Use this for testing
-                if len(parts) != 1:
-                    print("Invalid 'seed' command. Format: seed")
-                    continue
-                response = handle_seed(session)
                 print(response)
             case _:
                 print("Invalid command")
