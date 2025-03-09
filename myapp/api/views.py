@@ -1,5 +1,3 @@
-import random
-import string
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
@@ -9,13 +7,14 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.http.response import JsonResponse
 
+# Register
+# Description: Allow registration with username, email and password from POST request
 # Return 200 OK on success
 # Return 422 Unprocessable Entity with a text/plain reason on fields missing
 # Return 422 Unprocessable Entity with a text/plain reason otherwise
 @csrf_exempt
 @require_http_methods(["POST"])
 def register_view(request):
-    # Allow registration with username, email and password from POST request
     try:
         # Unpack parameters
         username = request.POST['username']
@@ -24,7 +23,6 @@ def register_view(request):
         if not username or not email or not password:
             return HttpResponse("Missing required fields", status=422, content_type="text/plain")
         
-        # Check unique constraint on email or username (achieve this complex lookup with the Q object)
         if User.objects.filter(Q(email=email) | Q(username=username)).exists():
             return HttpResponse("A user with the provided credentials already exists", status=422, content_type="text/plain")
         
@@ -36,6 +34,8 @@ def register_view(request):
         # Fallback error response
         return HttpResponse("Something went wrong", status=422, content_type="text/plain")
 
+# Login
+# Description: Take a username and password and authorise session
 # Return 200 OK on success
 # Return 404 Not Found with a text/plain reason if incorrect user/pass
 # Return 422 Unprocessable Entity with a text/plain reason on fields missing
@@ -43,7 +43,6 @@ def register_view(request):
 @csrf_exempt
 @require_http_methods(["POST"])
 def login_view(request):
-    # Take a username and password and authorise session
     try:
         # Unpack parameters
         username = request.POST['username']
@@ -64,6 +63,8 @@ def login_view(request):
         # Fallback error response
         return HttpResponse("Something went wrong", status=422, content_type="text/plain")
 
+# Logout
+# Description: End a logged-in session
 # Return 200 OK on success
 # Return 403 Unauthorised with a text/plain reason on authentication failure
 # Return 422 Unprocessable Entity with a text/plain reason otherwise
@@ -80,18 +81,20 @@ def logout_view(request):
         # Fallback error response
         return HttpResponse("Something went wrong", status=422, content_type="text/plain")
 
+# List
+# Description: View a list of all module instances and the professor(s) teaching each of them (option 1 on spec)
 # Return 200 OK with [{modcode, modname, year, semester, [{taughtbyname}]}] on success
 # Return 404 Not Found with a text/plain reason on failure
 # Return 422 Unprocessable Entity with a text/plain reason otherwise
 @require_http_methods(["GET"])
 def list_view(request):
-    # Option 1 on spec
-    # View a list of all module instances and the professor(s) teaching each of them
     try:
+        # Get all module instances
         instances = ModuleInstance.objects.all()
         if not instances.exists():
             return HttpResponse("No module instances found", status=404, content_type="text/plain")
         
+        # Build response
         data = []
         for instance in instances:
             data.append({
@@ -106,18 +109,20 @@ def list_view(request):
         # Fallback error response
         return HttpResponse("Something went wrong", status=422, content_type="text/plain")
 
+# View
+# Description: View the rating of all professors (option 2 on spec)
 # Return 200 OK with {[profname, profcode, avgrating]} on success
 # Return 404 Not Found with text/plain if no professors found
 # Return 422 Unprocessable Entity with a text/plain reason otherwise
 @require_http_methods(["GET"])
 def view_view(request):
-    # Option 2 on spec
-    # View the rating of all professors
     try:
+        # Get average ratings for each professor
         professors = Professor.objects.annotate(avg_rating=Avg('moduleinstanceprofessor__rating__rating'))
         if not professors.exists():
             return HttpResponse("No ratings found", status=404, content_type="text/plain")
-        
+
+         # Build response
         data = []
         for professor in professors:
             data.append({
@@ -130,16 +135,17 @@ def view_view(request):
         # Fallback error response
         return HttpResponse("Something went wrong", status=422, content_type="text/plain")
 
+# Average
+# Description: View the average rating of a certain professor in a certain module (option 3 on spec)
+# Params: professorCode, moduleCode
 # Return 200 OK with {profname, profcode, modulename, modulecode, rating} on success
 # Return 404 Not Found with a text/plain reason on failure
 # Return 422 Unprocessable Entity with a text/plain reason on fields missing
 # Return 422 Unprocessable Entity with a text/plain reason otherwise
 @require_http_methods(["GET"])
 def average_view(request):
-    # Option 3 on spec
-    # View the average rating of a certain professor in a certain module
-    # Params: professorCode, moduleCode
     try:
+        # Unpack params
         professor_code = request.GET.get('professor_code')
         module_code = request.GET.get('module_code')
         if not professor_code or not module_code:
@@ -158,8 +164,7 @@ def average_view(request):
         except (Professor.DoesNotExist, Module.DoesNotExist):
             return HttpResponse("Professor or module not found", status=404, content_type="text/plain")
 
-        # Handle case where there are no ratings
-        
+        # Build response
         data = {"professor_name": professor.name, 
                 "professor_code": professor.code, 
                 "module_name": module.name,
@@ -171,6 +176,9 @@ def average_view(request):
         # Fallback error response
         return HttpResponse("Something went wrong", status=422, content_type="text/plain")
 
+# Rate
+# Description: Rate the teaching of a certain professor in a certain module instance (option 4 on spec)
+# Params: professorCode, moduleCode, year, semester, rating
 # Return 201 Created on success
 # Return 404 Not Found with a text/plain reason on failure
 # Return 403 Unauthorised with a text/plain reason on authentication failure
@@ -180,9 +188,6 @@ def average_view(request):
 @csrf_exempt
 @require_http_methods(["POST"])
 def rate_view(request):
-    # Option 4 on spec
-    # Rate the teaching of a certain professor in a certain module instance
-    # Params: professorCode, moduleCode, year, semester, rating
     try:
         if (not request.user.is_authenticated):
             return HttpResponse('User is not authenticated', status=403, content_type="text/plain")
@@ -196,7 +201,6 @@ def rate_view(request):
         if not professorCode or not moduleCode or not year or not semester or not rating:
                 return HttpResponse("Missing required fields", status=422, content_type="text/plain")
         
-        # Validate and clean parameters
         try:
             # Only validate rating for rounding - others will just cause a moduleInstance not to be found
             rating = round(float(rating))
@@ -211,7 +215,6 @@ def rate_view(request):
             professor__code=professorCode
         ).first()
         
-        # Error if module instance not found
         if (moduleInstanceProfessor is None):
             return HttpResponse('Module instance not found', status=404, content_type="text/plain")
         
@@ -221,7 +224,6 @@ def rate_view(request):
             moduleInstanceProfessor=moduleInstanceProfessor.id,
         ).first()
         
-        # Error if an existing rating is found
         if (existingRating is not None):
             return HttpResponse('User has already rated this Module Instance', status=422, content_type="text/plain")
         
