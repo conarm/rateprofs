@@ -55,7 +55,7 @@ def handle_list(session):
                 # Iterate over teachers first for nicer formatting
                 professors = []
                 for professor in row["taught_by"]:
-                    professors.append(f"{professor["professor_code"]}, {professor["professor_name"]}")
+                    professors.append(f"{professor['professor_code']}, {professor['professor_name']}")
                 table.add_row([row["module_code"], row["module_name"], row["year"], row["semester"], "\n".join(professors)])
             output = table.draw()
             return output
