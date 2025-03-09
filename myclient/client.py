@@ -51,7 +51,10 @@ def handle_list(session):
         if response.status_code == 200:
             data = response.json()
             for row in data:
-                table.add_row([row["module_code"], row["module_name"], row["year"], row["semester"], "\n".join(row["taught_by"])])
+                teachers = []
+                for teacher in row["taught_by"]:
+                    teachers.append(f"{teacher["professor_code"]}, {teacher["professor_name"]}")
+                table.add_row([row["module_code"], row["module_name"], row["year"], row["semester"], "\n".join(teachers)])
             output = table.draw()
             return output
         else:

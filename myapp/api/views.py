@@ -97,12 +97,18 @@ def list_view(request):
         # Build response
         data = []
         for instance in instances:
+            taught_by = []
+            for professor in instance.professors.all():
+                taught_by.append({
+                    "professor_name": professor.name,
+                    "professor_code": professor.code
+                })
             data.append({
                 "module_code": instance.module.code,
                 "module_name": instance.module.name,
                 "year": instance.year,
                 "semester": instance.semester,
-                "taught_by": [professor.name for professor in instance.professors.all()]
+                "taught_by": taught_by
             })
         return JsonResponse(data, safe=False, status=200)
     except Exception:
