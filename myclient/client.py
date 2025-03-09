@@ -74,9 +74,9 @@ def handle_view(session):
             # Build output from data
             for row in data:
                 if (row["average_rating"] is not None):
-                    output_lines.append(f'The rating of Professor {row["professor_name"]} ({row["professor_code"]}) is {'*' * row["average_rating"]}')
+                    output_lines.append(f"The rating of Professor {row['professor_name']} ({row['professor_code']}) is {'*' * row['average_rating']}")
                 else:
-                    output_lines.append(f'No ratings exist for Professor {row["professor_name"]} ({row["professor_code"]})')
+                    output_lines.append(f"No ratings exist for Professor {row['professor_name']} ({row['professor_code']})")
             output = "\n".join(output_lines)
             return output
         else:
