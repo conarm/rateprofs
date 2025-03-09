@@ -1,7 +1,9 @@
 import requests
+import texttable
 
 # Base URL of the API
 BASE_URL = "https://sc21ca.pythonanywhere.com/api/"
+# BASE_URL = "http://127.0.0.1:8000/api/"
 
 # Send a register request to create a user account
 def handle_register(session, username, email, password):
@@ -38,19 +40,19 @@ def handle_logout(session):
     
 # Send a list request to view a list of all module instances
 def handle_list(session):
+    # Table setup
+    table = texttable.Texttable()
+    table.set_cols_align(["c", "c", "c", "c", "c"])
+    table.set_cols_dtype(["a", "a", "i", "i", "a"])
+    table.set_cols_valign(["m", "m", "m", "m", "m"])
+    table.add_row(["Module Code", "Module Name", "Year", "Semester", "Taught by"])
     try:
         response = session.get(BASE_URL + "list")
         if response.status_code == 200:
             data = response.json()
-            output_lines = []
-            output_lines.append('Code |   Name   | Year | Semester |  Taught by')
-            output_lines.append('---------------------------------------------------------------')
             for row in data:
-                output_lines.append(f'{row["module_code"]}     {row["module_name"]}   {row["year"]}     {row["semester"]}         {row["taught_by"][0]}')
-                for i in range(1, len(row["taught_by"])):
-                    output_lines.append(f'                                     {row["taught_by"][i]}')
-                output_lines.append('---------------------------------------------------------------')
-            output = "\n".join(output_lines)
+                table.add_row([row["module_code"], row["module_name"], row["year"], row["semester"], "\n".join(row["taught_by"])])
+            output = table.draw()
             return output
         else:
             return f"Error: {response.status_code} - {response.text}"
