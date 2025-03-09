@@ -50,11 +50,13 @@ def handle_list(session):
         response = session.get(BASE_URL + "list")
         if response.status_code == 200:
             data = response.json()
+            # Build table
             for row in data:
-                teachers = []
-                for teacher in row["taught_by"]:
-                    teachers.append(f"{teacher["professor_code"]}, {teacher["professor_name"]}")
-                table.add_row([row["module_code"], row["module_name"], row["year"], row["semester"], "\n".join(teachers)])
+                # Iterate over teachers first for nicer formatting
+                professors = []
+                for professor in row["taught_by"]:
+                    professors.append(f"{professor["professor_code"]}, {professor["professor_name"]}")
+                table.add_row([row["module_code"], row["module_name"], row["year"], row["semester"], "\n".join(professors)])
             output = table.draw()
             return output
         else:
@@ -69,6 +71,7 @@ def handle_view(session):
         if response.status_code == 200:
             data = response.json()
             output_lines = []
+            # Build output from data
             for row in data:
                 if (row["average_rating"] is not None):
                     output_lines.append(f'The rating of Professor {row["professor_name"]} ({row["professor_code"]}) is {'*' * row["average_rating"]}')
