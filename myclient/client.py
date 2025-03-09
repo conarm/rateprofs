@@ -54,9 +54,9 @@ def handle_list(session):
             for row in data:
                 # Iterate over teachers first for nicer formatting
                 professors = []
-                for professor in row["taught_by"]:
+                for professor in row['taught_by']:
                     professors.append(f"{professor['professor_code']}, {professor['professor_name']}")
-                table.add_row([row["module_code"], row["module_name"], row["year"], row["semester"], "\n".join(professors)])
+                table.add_row([row['module_code'], row['module_name'], row['year'], row['semester'], "\n".join(professors)])
             output = table.draw()
             return output
         else:
@@ -73,7 +73,7 @@ def handle_view(session):
             output_lines = []
             # Build output from data
             for row in data:
-                if (row["average_rating"] is not None):
+                if (row['average_rating'] is not None):
                     output_lines.append(f"The rating of Professor {row['professor_name']} ({row['professor_code']}) is {'*' * row['average_rating']}")
                 else:
                     output_lines.append(f"No ratings exist for Professor {row['professor_name']} ({row['professor_code']})")
@@ -90,10 +90,10 @@ def handle_average(session, professorCode, moduleCode):
         response = session.get(BASE_URL + "average", params={"professor_code": professorCode, "module_code": moduleCode})
         if response.status_code == 200:
             data = response.json()
-            if data["average_rating"] is not None:
-                output = f'The rating of Professor {data["professor_name"]} ({data["professor_code"]}) in module {data["module_name"]} ({data["module_code"]}) is {'*' * data["average_rating"]}'
+            if data['average_rating'] is not None:
+                output = f"The rating of Professor {data['professor_name']} ({data['professor_code']}) in module {data['module_name']} ({data['module_code']}) is {'*' * data['average_rating']}"
             else:
-                output = f'Rating unavailable'
+                output = f"Rating unavailable"
             return output
         else:
             return f"Error: {response.status_code} - {response.text}"
