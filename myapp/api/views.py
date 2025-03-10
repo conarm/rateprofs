@@ -199,8 +199,8 @@ def rate_view(request):
             return HttpResponse('User is not authenticated', status=403, content_type="text/plain")
         
         # Unpack parameters
-        professorCode = request.POST['professorCode']
-        moduleCode = request.POST['moduleCode']
+        professorCode = request.POST['professor_code']
+        moduleCode = request.POST['module_code']
         year = request.POST['year']
         semester = request.POST['semester']
         rating = request.POST['rating']
